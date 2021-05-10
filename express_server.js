@@ -10,7 +10,12 @@ const urlDatabase = {
 // registers a handler on root path "/"
 app.get("/", (req, res) => {
   res.send("Hello!");
-})
+});
+
+// additional endpoints 
+app.get("/urls.json", (req, res) => {
+  res.json(urlDatabase);
+});
 
 app.listen(PORT, () => {
   console.log(`example app listening on port ${PORT}!`)
