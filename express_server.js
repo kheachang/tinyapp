@@ -17,6 +17,14 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+// sending HTML - render HTMl response in the client browser
+app.get("/hello", (req, res) => {
+  res.send("<html><body>Hello <b>World</b></body></html>\n");
+})
+
 app.listen(PORT, () => {
   console.log(`example app listening on port ${PORT}!`)
 })
+
+
+ 
