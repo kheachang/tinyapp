@@ -3,8 +3,8 @@ const app = express();
 const PORT = 8080;
 
 // MIDDLEWARE:
-app.use(express.urlencoded({ extended: true }))
-app.use(express.json())
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 // sets ejs as the view engine
 app.set("view engine", "ejs");
@@ -44,7 +44,7 @@ app.post("/urls", (req, res) => {
   console.log("req.body: ", req.body); // req.body shows up in post request only
   const longURL = req.body.longURL;
   const shortURL = generateRandomString();
-  urlDatabase[shortURL] = longURL
+  urlDatabase[shortURL] = longURL;
   res.redirect(`./urls/${shortURL}`);
 });
 
@@ -62,6 +62,13 @@ app.get("/urls/:shortURL", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
+});
+
+// delete route
+app.post("/urls/:shortURL/delete", (req, res) => {
+  const itemToDelete = req.params.shortURL;
+  delete urlDatabase[itemToDelete];
+  res.redirect("/urls");
 });
 
 app.listen(PORT, () => {
