@@ -46,14 +46,12 @@ app.get("/urls.json", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase, user: users[req.cookies['user_id']]};
-  // console.log(req.cookies["username"])
   res.render("urls_index", templateVars);
 });
 
 // shows the form to submit new url
 app.get("/urls/new", (req, res) => {
   const templateVars = { urls: urlDatabase, user: users[req.cookies['user_id']] }; // identify users as their user_id cookie
-  console.log(users[req.cookies['user_id']]) // returns the user object
   res.render("urls_new", templateVars);
 });
 
@@ -64,7 +62,6 @@ app.get("/hello", (req, res) => {
 
 // user submits forms and presses submit
 app.post("/urls", (req, res) => {
-  console.log("req.body: ", req.body); // req.body shows up in post request only
   const longURL = req.body.longURL;
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = longURL;
@@ -114,23 +111,6 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls");
 });
 
-<<<<<<< HEAD
-// object to store and access users in the app
-const users = { 
-  "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
-  },
- "user2RandomID": {
-    id: "user2RandomID", 
-    email: "user2@example.com", 
-    password: "dishwasher-funk"
-  }
-};
-
-=======
->>>>>>> feature/user-registration
 // get register endpoint
 app.get("/register", (req, res) => {
   res.render("register");
@@ -139,13 +119,7 @@ app.get("/register", (req, res) => {
 // post register endpoint 
 app.post("/register", (req, res) => {
   // add a new user to the users object - id (generate string), email, pass
-  console.log("req.body:", req.body)
-<<<<<<< HEAD
-  let id = generateRandomString();
-=======
->>>>>>> feature/user-registration
   users[id] = {id: id, email: req.body.email, password: req.body.password}
-  console.log(users)
   // set user_id cookie containing user's newly generated ID
   res.cookie("user_id", users[id].id)
   res.redirect("/urls");
