@@ -96,6 +96,37 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls");
 });
 
+// object to store and access users in the app
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+};
+
+// get register endpoint
+app.get("/register", (req, res) => {
+  res.render("register");
+});
+
+// post register endpoint 
+app.post("/register", (req, res) => {
+  // add a new user to the users object - id (generate string), email, pass
+  console.log("req.body:", req.body)
+  let id = generateRandomString();
+  users[id] = {id: id, email: req.body.email, password: req.body.password}
+  console.log(users)
+  // set user_id cookie containing user's newly generated ID
+  res.cookie("user_id", users[id].id)
+  res.redirect("/urls");
+})
+
 app.listen(PORT, () => {
   console.log(`example app listening on port ${PORT}!`);
 });
