@@ -1,5 +1,5 @@
 const express = require("express");
-const cookieParser = require('cookie-parser');
+const cookieParser = require("cookie-parser");
 
 const app = express();
 const PORT = 8080;
@@ -20,19 +20,18 @@ const urlDatabase = {
 let id = generateRandomString();
 
 // object to store and access users in the app
-const users = { 
-  "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
   },
- "user2RandomID": {
-    id: "user2RandomID", 
-    email: "user2@example.com", 
-    password: "dishwasher-funk"
-  }
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
 };
-
 
 // registers a handler on root path "/"
 app.get("/", (req, res) => {
@@ -45,13 +44,19 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, user: users[req.cookies['user_id']]};
+  const templateVars = {
+    urls: urlDatabase,
+    user: users[req.cookies["user_id"]],
+  };
   res.render("urls_index", templateVars);
 });
 
 // shows the form to submit new url
 app.get("/urls/new", (req, res) => {
-  const templateVars = { urls: urlDatabase, user: users[req.cookies['user_id']] }; // identify users as their user_id cookie
+  const templateVars = {
+    urls: urlDatabase,
+    user: users[req.cookies["user_id"]],
+  }; // identify users as their user_id cookie
   res.render("urls_new", templateVars);
 });
 
@@ -74,7 +79,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    user: users[req.cookies['user_id']]
+    user: users[req.cookies["user_id"]],
   };
   res.render("urls_show", templateVars);
 });
@@ -94,18 +99,18 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 // update route page
 app.post("/urls/:shortURL/update", (req, res) => {
-  const itemToUpdate = req.params.shortURL
-  urlDatabase[itemToUpdate] = req.body.longURL // change the value of original short url to the new edited long url
+  const itemToUpdate = req.params.shortURL;
+  urlDatabase[itemToUpdate] = req.body.longURL; // change the value of original short url to the new edited long url
   res.redirect(`/urls/`);
-})
+});
 
 // handler for accepting new user logins
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username )
-  res.redirect("/urls/")
+  res.cookie("username", req.body.username);
+  res.redirect("/urls/");
 });
 
-// logout endpoint 
+// logout endpoint
 app.post("/logout", (req, res) => {
   res.clearCookie("username");
   res.redirect("/urls");
@@ -116,20 +121,23 @@ app.get("/register", (req, res) => {
   res.render("register");
 });
 
-// post register endpoint 
+// post register endpoint
 app.post("/register", (req, res) => {
   // add a new user to the users object - id (generate string), email, pass
-  users[id] = {id: id, email: req.body.email, password: req.body.password}
+  users[id] = { id: id, email: req.body.email, password: req.body.password };
   // set user_id cookie containing user's newly generated ID
-  res.cookie("user_id", users[id].id)
+  res.cookie("user_id", users[id].id);
+  if (users[id].email === "" || users[id].password === "" || emailLookUp(users[id].email, users) === true) {
+    res.sendStatus(400);
+  } 
   res.redirect("/urls");
-})
+});
 
 app.listen(PORT, () => {
   console.log(`example app listening on port ${PORT}!`);
 });
 
-// function generates a unique shortURL of 6 letters
+// helper functions
 function generateRandomString() {
   const letters = "ABCDEFGHIJKLMNOPQRSTUPWXYZabcdefghijklmnopqrstupwxyz";
   const randomStr = [];
@@ -139,4 +147,14 @@ function generateRandomString() {
   }
   return randomStr.join("");
 }
+
+const emailLookUp = (email, object) => {
+  for (const user in object) {
+    if (email === object[user].email) {
+      return true;
+    }
+  }
+  return false;
+}
+
 
