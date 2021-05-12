@@ -18,21 +18,22 @@ partials can be used to logically separate page elements from keeping templates 
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-        <% if (!username) { %>
-        <form method="POST" action="/login">
-          <label for="username">Enter username:</label>
-          <input
-            type="text"
-            id="username"
-            placeholder="username"
-            name="username"
-          />
-          <input type="submit" value="Submit" />
-        </form>
-        <% } else { %>
-        <h4>Logged in as <%= username %></h4>
-        <form method='POST' action='/logout'><input type="submit" value="Logout"></form>
+        <% if (!user) { %>
+          <form action="/login" method="GET">
+            <button type="submit" class="btn btn-success">Login</button>
+          </form>
+          <form action="/register" method="GET">
+            <button type="submit" class="btn btn-success">Register</button>
+          </form>
+        <% } 
+        if (user) { %>
+
+          <form action="/logout" method="POST">
+          <label>Logged In As: <%= user.email %></label>
+           <button type="submit" class="btn btn-outline-dark">Logout</button>
+          </form>
         <% } %>
+  
       </div>
     </div>
   </nav>
