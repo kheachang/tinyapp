@@ -1,10 +1,14 @@
 const express = require("express");
+const cookieParser = require('cookie-parser');
+// const cookieSession = require('cookie-session')
 const app = express();
 const PORT = 8080;
 
-// MIDDLEWARE:
+// bodyParser
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(cookieParser());
+// app.use(   cookieSession({     name: 'session',     keys: ['key1', 'key2'],   }) );
 
 // sets ejs as the view engine
 app.set("view engine", "ejs");
@@ -25,18 +29,19 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { urls: urlDatabase};
+  // console.log(req.cookies["username"])
   res.render("urls_index", templateVars);
 });
 
 // shows the form to submit new url
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  res.render("urls_new", {username: req.cookies["username"]});
 });
 
 // sending HTML - render HTMl response in the client browser
 app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
+  res.send("<html><body>Hello <b>World!!!</b></body></html>\n");
 });
 
 // user submits forms and presses submit
@@ -73,12 +78,16 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 // update route page
 app.post("/urls/:shortURL/update", (req, res) => {
-  console.log('breadcrumbs')
   const itemToUpdate = req.params.shortURL
   urlDatabase[itemToUpdate] = req.body.longURL // change the value of original short url to the new edited long url
   res.redirect(`/urls/`);
 })
 
+// handler for accepting new user logins
+app.post("/login", (req, res) => {
+  res.cookie("username", req.body.username )
+  res.redirect("/urls/")
+});
 
 app.listen(PORT, () => {
   console.log(`example app listening on port ${PORT}!`);

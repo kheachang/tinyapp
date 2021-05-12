@@ -26,12 +26,12 @@
           <tr>
             <td><%= url %></td>
             <td><%= urls[url] %></td>
-            <td><form method='POST' action='/urls/<%= url %>/delete'><input type="submit" value="delete"></form></td>
-            <td><form method='GET' action='/urls/<%= url %>'><input type="submit" value="updateForm"></form></td>
+            <td><form method='POST' action='/urls/<%= url %>/delete'><input type="submit" value="Delete"></form></td>
+            <td><form method='GET' action='/urls/<%= url %>'><input type="submit" value="Edit"></form></td>
 
           </tr>
         <% } %>
-      </tbody>
+      </tbody>  
     </table>
   </main>
   <!-- Bootstrap JS -->

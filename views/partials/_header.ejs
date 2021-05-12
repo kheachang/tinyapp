@@ -10,6 +10,12 @@ partials can be used to logically separate page elements from keeping templates 
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+        <form method="POST" action="/login" >
+          <label for="username">Enter username:</label>
+          <input type="text" id="username" placeholder="username" name="username">
+          <input type="submit" value="Submit">
+        </form>
+      
       </div>
     </div>
   </nav>
