@@ -18,6 +18,23 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
+let id = generateRandomString();
+
+// object to store and access users in the app
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+};
+
+
 // registers a handler on root path "/"
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -29,14 +46,16 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, username: req.cookies["username"]};
+  const templateVars = { urls: urlDatabase, user: users[req.cookies['user_id']]};
   // console.log(req.cookies["username"])
   res.render("urls_index", templateVars);
 });
 
 // shows the form to submit new url
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new", {username: req.cookies["username"]});
+  const templateVars = { urls: urlDatabase, user: users[req.cookies['user_id']] }; // identify users as their user_id cookie
+  console.log(users[req.cookies['user_id']]) // returns the user object
+  res.render("urls_new", templateVars);
 });
 
 // sending HTML - render HTMl response in the client browser
@@ -59,7 +78,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies["username"]
+    user: users[req.cookies['user_id']]
   };
   res.render("urls_show", templateVars);
 });
@@ -96,6 +115,22 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls");
 });
 
+// get register endpoint
+app.get("/register", (req, res) => {
+  res.render("register");
+});
+
+// post register endpoint 
+app.post("/register", (req, res) => {
+  // add a new user to the users object - id (generate string), email, pass
+  console.log("req.body:", req.body)
+  users[id] = {id: id, email: req.body.email, password: req.body.password}
+  console.log(users)
+  // set user_id cookie containing user's newly generated ID
+  res.cookie("user_id", users[id].id)
+  res.redirect("/urls");
+})
+
 app.listen(PORT, () => {
   console.log(`example app listening on port ${PORT}!`);
 });
@@ -110,3 +145,4 @@ function generateRandomString() {
   }
   return randomStr.join("");
 }
+
