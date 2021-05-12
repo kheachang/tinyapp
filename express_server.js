@@ -1,6 +1,6 @@
 const express = require("express");
 const cookieParser = require('cookie-parser');
-// const cookieSession = require('cookie-session')
+
 const app = express();
 const PORT = 8080;
 
@@ -8,7 +8,6 @@ const PORT = 8080;
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
-// app.use(   cookieSession({     name: 'session',     keys: ['key1', 'key2'],   }) );
 
 // sets ejs as the view engine
 app.set("view engine", "ejs");
