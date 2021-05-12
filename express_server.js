@@ -104,6 +104,11 @@ app.post("/urls/:shortURL/update", (req, res) => {
   res.redirect(`/urls/`);
 });
 
+// get login endpoint 
+app.get("/login", (req, res) => {
+  res.render("login");
+});
+
 // handler for accepting new user logins
 app.post("/login", (req, res) => {
   res.cookie("username", req.body.username);
