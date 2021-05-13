@@ -74,7 +74,6 @@ app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = {longURL, userID: req.cookies["user_id"]}
-  // console.log(urlDatabase)
   res.redirect(`./urls/${shortURL}`);
 });
 
@@ -86,9 +85,6 @@ app.get("/urls/:shortURL", (req, res) => {
     longURL: urlDatabase[req.params.shortURL].longURL,
     user: users[req.cookies["user_id"]],
   };
-  // console.log("templateVars", templateVars);
-  // console.log("urldatabase", urlDatabase)
-  // console.log(req.params)
   res.render("urls_show", templateVars);
 });
 
@@ -129,8 +125,7 @@ app.post("/login", (req, res) => {
   if (!verifyEmail(req.body.email)) {
     return res.status(400).send("There is no email registered.");
   } 
-  // console.log("user", user)
-  // verify password
+  // check if passwords match
   if (!bcrypt.compareSync(req.body.password, user.password)) {
     res.status(400).send("Invalid password");
   }
@@ -159,6 +154,7 @@ app.post("/register", (req, res) => {
   // else if (verifyEmail(req.body.email, users)) {
   //   res.status(400).send("This account already exists.");
   // }
+  
   // hash passwords
   const plainTextPassword = req.body.password;
   bcrypt.genSalt(10)
