@@ -14,8 +14,8 @@ app.use(cookieParser());
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-  b2xVn2: "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 
 let id = generateRandomString();
@@ -54,11 +54,11 @@ app.get("/urls", (req, res) => {
 
 // shows the form to submit new url
 app.get("/urls/new", (req, res) => {
-  const templateVars = {
-    urls: urlDatabase,
-    user: users[req.cookies["user_id"]],
-  }; // identify users as their user_id cookie
-  res.render("urls_new", templateVars);
+  if (!req.cookies['user_id']) {
+    res.redirect('/login');
+  }
+  const templateVars = { urls: urlDatabase, user: users[req.cookies['user_id']] };
+  res.render('urls_new', templateVars)
 });
 
 // sending HTML - render HTMl response in the client browser
@@ -75,7 +75,6 @@ app.post("/urls", (req, res) => {
 });
 
 // route for showing users their newly created shortURL link
-// colon indicates a url that is changing
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
@@ -108,31 +107,26 @@ app.post("/urls/:shortURL/update", (req, res) => {
 // get login endpoint
 app.get("/login", (req, res) => {
   let templateVars = {
-    user: users[req.cookies["user_id"]]
+    user: users[req.cookies["user_id"]],
   };
-  if (!req.cookies["user_id"]) {
-    res.render("login", templateVars);
-  } else {
-    res.redirect("/urls");
-  }
+  res.render("login", templateVars);
 });
 
 // handler for accepting new user logins
 app.post("/login", (req, res) => {
-    // return user from database
+  // return user from database
   const user = getUserByEmail(req.body.email, users);
   // if email is not in database, return 400
   if (!verifyEmail(req.body.email)) {
-    return res.status(400).send('There is no email registered.');
+    return res.status(400).send("There is no email registered.");
   }
   // verify password and direct accordingly
   // if (!bcrypt.compareSync(req.body.password, user.password)) {
-  //   return res.status(403).send('Password and email incorrect.');
+  //   return res.status(403).send("Password and email incorrect.");
   // } else {
     // attach existing account to session
-    // req.cookie["user_id"] = user.id;
     res.cookie("user_id", user.id);
-    res.redirect('/urls');
+    res.redirect("/urls/new");
   
 });
 
@@ -154,12 +148,12 @@ app.post("/register", (req, res) => {
   // set user_id cookie containing user's newly generated ID
   if (users[id].email === "" || users[id].password === "") {
     res.status(400).send("Please enter a valid email and password.");
-    // } else if (lookUpEmail(users[id].email, users) === true) {
-    //   res.status(400).send("This email already exists. Please login.")
-    // }
-  }
+  } 
+  // else if (verifyEmail(req.body.email, users)) {
+  //   res.status(400).send("This account already exists.");
+  // }
   res.cookie("user_id", users[id].id);
-  res.redirect("/urls");
+  res.redirect("/urls/new");
 });
 
 app.listen(PORT, () => {
@@ -177,41 +171,6 @@ function generateRandomString() {
   return randomStr.join("");
 }
 
-const lookUpEmail = (email, object) => {
-  for (const user in object) {
-    if (email === object[user].email) {
-      return true;
-    }
-  }
-  return false;
-};
-
-// passwordFinder helper function
-const passwordExists = function(password) {
-  for (Id in users) {
-    if (bcrypt.compareSync(password, users[Id].password)) {
-      return true;
-    }
-  }
-};
-
-
-// ID catcher helper function
-const idCatcher = function (password) {
-  for (Id in users) {
-    if (passwordExists(password)) {
-      return Id;
-    }
-  }
-  return false;
-};
-
-// Confirm that the cx username and pw match
-const identityConfirm = function (email, password) {
-  if (users[idCatcher(password)]["email"] === email) {
-    return true;
-  }
-};
 
 // return object from user input
 const getUserByEmail = (email, users) => {
@@ -224,7 +183,7 @@ const getUserByEmail = (email, users) => {
   return false;
 };
 
-const verifyEmail = email => {
+const verifyEmail = (email) => {
   let user = getUserByEmail(email, users);
   if (!user) {
     return false;
@@ -234,4 +193,3 @@ const verifyEmail = email => {
     }
   }
 };
-
