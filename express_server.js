@@ -1,15 +1,22 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
 const bcrypt = require("bcrypt");
 const morgan = require("morgan");
 const app = express();
 const PORT = 8080;
+const {getUserByEmail} = require("./helper");
 
 // bodyParser
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
-
+app.use(cookieSession(
+  {
+    name: 'user_id',
+    keys: ['strings']
+  }
+))
 // sets ejs as the view engine
 app.set("view engine", "ejs");
 
@@ -46,25 +53,27 @@ app.get("/urls.json", (req, res) => {
 
 app.get("/urls", (req, res) => {
 
-  if (req.cookies["user_id"]) {
+  if (req.session.user_id) {
       // display url database if user logged in 
       // display their own urls only
     const templateVars = {
-      user: users[req.cookies["user_id"]],
-      urls: urlsForUser(req.cookies["user_id"]),
+      user: users[req.session.user_id],
+      urls: urlsForUser(req.session.user_id),
+      userID: req.session["user_id"]
     };
     res.render("urls_index", templateVars);
   } else {
     res.redirect("/login")
   }
+  console.log("req session user_id", req.session.user_id)
 });
 
 // shows the form to submit new url
 app.get("/urls/new", (req, res) => {
-  if (!req.cookies['user_id']) {
+  if (!req.session.user_id) {
     res.redirect('/login');
   }
-  const templateVars = { urls: urlDatabase, user: users[req.cookies['user_id']] };
+  const templateVars = { urls: urlDatabase, user: users[req.session.user_id] };
   res.render('urls_new', templateVars)
 });
 
@@ -73,7 +82,7 @@ app.get("/urls/new", (req, res) => {
 app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
   const shortURL = generateRandomString();
-  urlDatabase[shortURL] = {longURL, userID: req.cookies["user_id"]}
+  urlDatabase[shortURL] = {longURL, userID: req.session["user_id"]}
   res.redirect(`./urls/${shortURL}`);
 });
 
@@ -83,7 +92,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL,
-    user: users[req.cookies["user_id"]],
+    user: users[req.session.user_id],
   };
   res.render("urls_show", templateVars);
 });
@@ -112,7 +121,7 @@ app.post("/urls/:shortURL/update", (req, res) => {
 // get login endpoint
 app.get("/login", (req, res) => {
   let templateVars = {
-    user: users[req.cookies["user_id"]],
+    user: users[req.session["user_id"]],
   };
   res.render("login", templateVars);
 });
@@ -126,18 +135,20 @@ app.post("/login", (req, res) => {
     return res.status(400).send("There is no email registered.");
   } 
   // check if passwords match
-  if (!bcrypt.compareSync(req.body.password, user.password)) {
-    res.status(400).send("Invalid password");
-  }
-
-  res.cookie("user_id", user.id);
-  res.redirect("/urls/new");
-  
+  bcrypt.compare(req.body.password, user.password)
+  .then((result) => {
+    if (result) {
+      req.session.user_id = user.id;
+      res.redirect('/urls/new');
+    } else {
+      return res.status(401).send('Password incorrect');
+    }
+  });  
 });
 
 // logout endpoint
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  req.session = null  
   res.redirect("/urls");
 });
 
@@ -154,7 +165,7 @@ app.post("/register", (req, res) => {
   // else if (verifyEmail(req.body.email, users)) {
   //   res.status(400).send("This account already exists.");
   // }
-  
+
   // hash passwords
   const plainTextPassword = req.body.password;
   bcrypt.genSalt(10)
@@ -167,8 +178,7 @@ app.post("/register", (req, res) => {
         email: req.body.email,
         password: hash,
       };
-      // console.log("users: ", users);    
-      res.cookie("user_id", users[id].id);
+      req.session.user_id = id;
       res.redirect("/urls/new");    
     })
 });
@@ -189,16 +199,7 @@ function generateRandomString() {
 }
 
 
-// return object from user input
-const getUserByEmail = (email, users) => {
-  // loop through the users object
-  for (const key of Object.keys(users)) {
-    if (users[key].email === email) {
-      return users[key];
-    }
-  }
-  return false;
-};
+
 
 // verify the email exists in database
 const verifyEmail = (email) => {
