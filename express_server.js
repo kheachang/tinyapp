@@ -128,10 +128,15 @@ app.post("/login", (req, res) => {
   // if email is not in database, return 400
   if (!verifyEmail(req.body.email)) {
     return res.status(400).send("There is no email registered.");
+  } 
+  // console.log("user", user)
+  // verify password
+  if (!bcrypt.compareSync(req.body.password, user.password)) {
+    res.status(400).send("Invalid password");
   }
- 
-    res.cookie("user_id", user.id);
-    res.redirect("/urls/new");
+
+  res.cookie("user_id", user.id);
+  res.redirect("/urls/new");
   
 });
 
@@ -148,17 +153,28 @@ app.get("/register", (req, res) => {
 
 // post register endpoint
 app.post("/register", (req, res) => {
-  // add a new user to the users object - id (generate string), email, pass
-  users[id] = { id: id, email: req.body.email, password: req.body.password };
-  // set user_id cookie containing user's newly generated ID
-  if (users[id].email === "" || users[id].password === "") {
+  if (req.body.email === "" || req.body.password === "") {
     res.status(400).send("Please enter a valid email and password.");
   } 
   // else if (verifyEmail(req.body.email, users)) {
   //   res.status(400).send("This account already exists.");
   // }
-  res.cookie("user_id", users[id].id);
-  res.redirect("/urls/new");
+  // hash passwords
+  const plainTextPassword = req.body.password;
+  bcrypt.genSalt(10)
+    .then((salt) => {
+      return bcrypt.hash(plainTextPassword, salt);
+    })
+    .then((hash) => {
+      users[id] = {
+        id: id,
+        email: req.body.email,
+        password: hash,
+      };
+      // console.log("users: ", users);    
+      res.cookie("user_id", users[id].id);
+      res.redirect("/urls/new");    
+    })
 });
 
 app.listen(PORT, () => {
@@ -188,6 +204,7 @@ const getUserByEmail = (email, users) => {
   return false;
 };
 
+// verify the email exists in database
 const verifyEmail = (email) => {
   let user = getUserByEmail(email, users);
   if (!user) {
@@ -199,8 +216,7 @@ const verifyEmail = (email) => {
   }
 };
 
-//Create a function named urlsForUser(id) which returns the URLs where the userID is equal to the id of the currently logged-in user.
-
+// Returns urls that each user created
 const urlsForUser = id => {
   const urls = [];
   for (const url in urlDatabase) {
