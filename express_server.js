@@ -15,7 +15,7 @@ app.set("view engine", "ejs");
 
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" },
 };
 
 let id = generateRandomString();
@@ -45,11 +45,18 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = {
-    urls: urlDatabase,
-    user: users[req.cookies["user_id"]],
-  };
-  res.render("urls_index", templateVars);
+
+  if (req.cookies["user_id"]) {
+      // display url database if user logged in 
+      // display their own urls only
+    const templateVars = {
+      user: users[req.cookies["user_id"]],
+      urls: urlsForUser(req.cookies["user_id"]),
+    };
+    res.render("urls_index", templateVars);
+  } else {
+    res.redirect("/login")
+  }
 });
 
 // shows the form to submit new url
@@ -61,16 +68,12 @@ app.get("/urls/new", (req, res) => {
   res.render('urls_new', templateVars)
 });
 
-// sending HTML - render HTMl response in the client browser
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World!!!</b></body></html>\n");
-});
 
 // user submits forms and presses submit
 app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
   const shortURL = generateRandomString();
-  urlDatabase[shortURL] = longURL;
+  urlDatabase[shortURL] = {longURL, userID: req.cookies["user_id"]}
   res.redirect(`./urls/${shortURL}`);
 });
 
@@ -78,9 +81,11 @@ app.post("/urls", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL],
+    longURL: urlDatabase[req.params.shortURL].longURL,
     user: users[req.cookies["user_id"]],
   };
+  console.log(templateVars);
+  console.log("urldatabase", urlDatabase)
   res.render("urls_show", templateVars);
 });
 
@@ -193,3 +198,16 @@ const verifyEmail = (email) => {
     }
   }
 };
+
+//Create a function named urlsForUser(id) which returns the URLs where the userID is equal to the id of the currently logged-in user.
+
+const urlsForUser = id => {
+  const urls = [];
+  for (const url in urlDatabase) {
+    if (urlDatabase[url].userID === id) {
+      urls.push(url)
+    }
+  }
+  return urls
+}
+
