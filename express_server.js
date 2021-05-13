@@ -74,18 +74,21 @@ app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = {longURL, userID: req.cookies["user_id"]}
+  // console.log(urlDatabase)
   res.redirect(`./urls/${shortURL}`);
 });
 
 // route for showing users their newly created shortURL link
 app.get("/urls/:shortURL", (req, res) => {
+  // updates urlDatabase
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL,
     user: users[req.cookies["user_id"]],
   };
-  console.log(templateVars);
-  console.log("urldatabase", urlDatabase)
+  // console.log("templateVars", templateVars);
+  // console.log("urldatabase", urlDatabase)
+  // console.log(req.params)
   res.render("urls_show", templateVars);
 });
 
@@ -105,7 +108,8 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 // update route page
 app.post("/urls/:shortURL/update", (req, res) => {
   const itemToUpdate = req.params.shortURL;
-  urlDatabase[itemToUpdate] = req.body.longURL; // change the value of original short url to the new edited long url
+  urlDatabase[itemToUpdate].longURL = req.body.longURL; // change the value of original short url to the new edited long url
+  console.log("urlDatabase[itemToUpdate]", urlDatabase[itemToUpdate].longURL)
   res.redirect(`/urls/`);
 });
 
