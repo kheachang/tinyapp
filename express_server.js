@@ -1,7 +1,7 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
-
+const morgan = require("morgan");
 const app = express();
 const PORT = 8080;
 
@@ -129,11 +129,7 @@ app.post("/login", (req, res) => {
   if (!verifyEmail(req.body.email)) {
     return res.status(400).send("There is no email registered.");
   }
-  // verify password and direct accordingly
-  // if (!bcrypt.compareSync(req.body.password, user.password)) {
-  //   return res.status(403).send("Password and email incorrect.");
-  // } else {
-    // attach existing account to session
+ 
     res.cookie("user_id", user.id);
     res.redirect("/urls/new");
   
