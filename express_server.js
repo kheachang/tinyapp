@@ -1,5 +1,6 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcrypt");
 
 const app = express();
 const PORT = 8080;
@@ -24,7 +25,7 @@ const users = {
   userRandomID: {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur",
+    password: "123",
   },
   user2RandomID: {
     id: "user2RandomID",
@@ -104,20 +105,40 @@ app.post("/urls/:shortURL/update", (req, res) => {
   res.redirect(`/urls/`);
 });
 
-// get login endpoint 
+// get login endpoint
 app.get("/login", (req, res) => {
-  res.render("login");
+  let templateVars = {
+    user: users[req.cookies["user_id"]]
+  };
+  if (!req.cookies["user_id"]) {
+    res.render("login", templateVars);
+  } else {
+    res.redirect("/urls");
+  }
 });
 
 // handler for accepting new user logins
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
-  res.redirect("/urls/");
+    // return user from database
+  const user = getUserByEmail(req.body.email, users);
+  // if email is not in database, return 400
+  if (!verifyEmail(req.body.email)) {
+    return res.status(400).send('There is no email registered.');
+  }
+  // verify password and direct accordingly
+  // if (!bcrypt.compareSync(req.body.password, user.password)) {
+  //   return res.status(403).send('Password and email incorrect.');
+  // } else {
+    // attach existing account to session
+    // req.cookie["user_id"] = user.id;
+    res.cookie("user_id", user.id);
+    res.redirect('/urls');
+  
 });
 
 // logout endpoint
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
   res.redirect("/urls");
 });
 
@@ -131,10 +152,13 @@ app.post("/register", (req, res) => {
   // add a new user to the users object - id (generate string), email, pass
   users[id] = { id: id, email: req.body.email, password: req.body.password };
   // set user_id cookie containing user's newly generated ID
+  if (users[id].email === "" || users[id].password === "") {
+    res.status(400).send("Please enter a valid email and password.");
+    // } else if (lookUpEmail(users[id].email, users) === true) {
+    //   res.status(400).send("This email already exists. Please login.")
+    // }
+  }
   res.cookie("user_id", users[id].id);
-  if (users[id].email === "" || users[id].password === "" || emailLookUp(users[id].email, users) === true) {
-    res.sendStatus(400);
-  } 
   res.redirect("/urls");
 });
 
@@ -153,13 +177,61 @@ function generateRandomString() {
   return randomStr.join("");
 }
 
-const emailLookUp = (email, object) => {
+const lookUpEmail = (email, object) => {
   for (const user in object) {
     if (email === object[user].email) {
       return true;
     }
   }
   return false;
-}
+};
 
+// passwordFinder helper function
+const passwordExists = function(password) {
+  for (Id in users) {
+    if (bcrypt.compareSync(password, users[Id].password)) {
+      return true;
+    }
+  }
+};
+
+
+// ID catcher helper function
+const idCatcher = function (password) {
+  for (Id in users) {
+    if (passwordExists(password)) {
+      return Id;
+    }
+  }
+  return false;
+};
+
+// Confirm that the cx username and pw match
+const identityConfirm = function (email, password) {
+  if (users[idCatcher(password)]["email"] === email) {
+    return true;
+  }
+};
+
+// return object from user input
+const getUserByEmail = (email, users) => {
+  // loop through the users object
+  for (const key of Object.keys(users)) {
+    if (users[key].email === email) {
+      return users[key];
+    }
+  }
+  return false;
+};
+
+const verifyEmail = email => {
+  let user = getUserByEmail(email, users);
+  if (!user) {
+    return false;
+  } else {
+    if (email === user.email) {
+      return true;
+    }
+  }
+};
 
