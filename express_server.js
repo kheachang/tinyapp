@@ -1,23 +1,19 @@
 const express = require("express");
-const cookieParser = require("cookie-parser");
 const cookieSession = require("cookie-session");
 const bcrypt = require("bcrypt");
-const morgan = require("morgan");
 const app = express();
 const PORT = 8080;
 const { getUserByEmail } = require("./helper");
 
-// bodyParser
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cookieParser());
 app.use(
   cookieSession({
     name: "user_id",
     keys: ["strings"],
   })
 );
-// sets ejs as the view engine
+
 app.set("view engine", "ejs");
 
 const urlDatabase = {
@@ -27,7 +23,6 @@ const urlDatabase = {
 
 let id = generateRandomString();
 
-// object to store and access users in the app
 const users = {
   userRandomID: {
     id: "userRandomID",
@@ -54,8 +49,6 @@ app.get("/", (req, res) => {
 
 app.get("/urls", (req, res) => {
   if (req.session.user_id) {
-    // display url database if user logged in
-    // display their own urls only
     const templateVars = {
       user: users[req.session.user_id],
       urls: urlsForUser(req.session.user_id),
